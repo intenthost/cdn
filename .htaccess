@@ -1,0 +1,57 @@
+# ==============================================================================
+# Intent CDN - cPanel Apache / LiteSpeed Configuration
+# ==============================================================================
+
+# Disable directory browsing
+Options -Indexes
+
+# Ensure UTF-8 default
+AddDefaultCharset UTF-8
+
+# Protect sensitive environment file
+<Files ".env">
+  Order Allow,Deny
+  Deny from all
+</Files>
+
+# Clean URLs for /login and /logout
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^login/?$ login.php [L,QSA]
+  RewriteRule ^logout/?$ logout.php [L,QSA]
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Enforce Zero-Cache headers on dynamic endpoints
+  <FilesMatch "\.(php|json)$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+  </FilesMatch>
+
+  # Allow cross-origin access between custom domain & admin domain
+  Header set Access-Control-Allow-Origin "*"
+  Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+  Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma"
+
+  # Disable buffering for Server-Sent Events (SSE)
+  <FilesMatch "api\.php$">
+    Header set X-Accel-Buffering "no"
+  </FilesMatch>
+</IfModule>
+
+# Increase upload limits if supported by cPanel Apache handler
+<IfModule mod_php7.c>
+  php_value upload_max_filesize 512M
+  php_value post_max_size 512M
+  php_value max_execution_time 300
+  php_value max_input_time 300
+</IfModule>
+
+<IfModule mod_php.c>
+  php_value upload_max_filesize 512M
+  php_value post_max_size 512M
+  php_value max_execution_time 300
+  php_value max_input_time 300
+</IfModule>
